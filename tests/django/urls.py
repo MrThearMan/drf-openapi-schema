@@ -5,7 +5,6 @@ from django.contrib.auth.models import User
 from django.core.management import call_command
 from django.urls import include, path
 from django.views.generic import TemplateView
-from pipeline_views.schema import deprecate
 from pipeline_views.serializers import HeaderAndCookieSerializer
 from pipeline_views.typing import Optional
 from pipeline_views.views import BasePipelineView
@@ -19,7 +18,8 @@ from rest_framework.serializers import ModelSerializer
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet, ViewSet
 
-from openapi_schema.schema import PipelineSchema
+from openapi_schema.schema import OpenAPISchema
+from openapi_schema.utils import deprecate
 from openapi_schema.views import get_schema_view
 
 with suppress(Exception):
@@ -91,7 +91,7 @@ class ExampleView(BasePipelineView):
         ],
     }
 
-    schema = PipelineSchema()
+    schema = OpenAPISchema()
 
 
 class ExampleWebhook(BasePipelineView):
@@ -104,7 +104,7 @@ class ExampleWebhook(BasePipelineView):
         ],
     }
 
-    schema = PipelineSchema()
+    schema = OpenAPISchema()
 
 
 class ExamplePathView(BasePipelineView):
@@ -118,7 +118,7 @@ class ExamplePathView(BasePipelineView):
         ],
     }
 
-    schema = PipelineSchema(
+    schema = OpenAPISchema(
         public={
             "PATCH": True,
         },
@@ -136,7 +136,7 @@ class ExampleHeaderAndCookieView(BasePipelineView):
         ],
     }
 
-    schema = PipelineSchema(
+    schema = OpenAPISchema(
         public={
             "PATCH": True,
         },
@@ -156,7 +156,7 @@ class ExamplePrivateView(BasePipelineView):
         ],
     }
 
-    schema = PipelineSchema(
+    schema = OpenAPISchema(
         public={
             "PUT": False,
         },
@@ -175,7 +175,7 @@ class PydanticView(BasePipelineView):
         ],
     }
 
-    schema = PipelineSchema()
+    schema = OpenAPISchema()
 
 
 class PlainView(APIView):

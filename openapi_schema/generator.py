@@ -43,7 +43,7 @@ from .utils import (
 )
 
 
-class PipelineSchemaGenerator:
+class OpenAPISchemaGenerator:
     def __init__(
         self,
         *,
@@ -60,7 +60,7 @@ class PipelineSchemaGenerator:
         security_rules: Optional[SecurityRules] = None,
         terms_of_service: UrlPath = "",
     ):
-        """Custom Schema Generator for Pipeline Views.
+        """Custom Schema Generator for Django Rest Framework views.
 
         :param title: The name of the API (required).
         :param root_url: The root URL prefix of the API schema. Useful for defining versioned API.

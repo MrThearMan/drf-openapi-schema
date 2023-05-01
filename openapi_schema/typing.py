@@ -99,6 +99,10 @@ class CompatibleView(Protocol):
     def __init__(self, *args, **kwargs):
         """Init"""
 
+    @classmethod
+    def as_view(cls, **kwargs):
+        """As View"""
+
     def get_serializer(self, *args: Any, **kwargs: Any) -> Serializer:
         """Get serializer"""
 

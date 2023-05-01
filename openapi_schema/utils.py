@@ -1,6 +1,8 @@
+import copy
 import re
 import warnings
 from decimal import Decimal
+from functools import partial
 from inspect import cleandoc
 
 from django.contrib.admindocs.views import simplify_regex
@@ -28,6 +30,7 @@ from .typing import (
     PathAndMethod,
     SerializerOrSerializerType,
     Tuple,
+    Type,
     TypeGuard,
     Union,
     UrlPath,
@@ -375,3 +378,41 @@ def warn_method_override(
 class EmptySerializer(serializers.Serializer):
     # Used for schema 204 responses
     pass
+
+
+def deprecate(
+    __view: Optional[Type[CompatibleView]] = None,
+    *,
+    methods: Optional[List[HTTPMethod]] = None,
+) -> Type[CompatibleView]:
+    """Deprecate a view in the OpenAPI schema while retaining the original.
+
+    :param methods: HTTP methods to deprecate. Deprecate all if not given.
+    """
+
+    def view(_view: Type[CompatibleView], _methods: Optional[List[HTTPMethod]] = None) -> Type[CompatibleView]:
+        # Mock the "get_serializer_class" method to change the calculated "operation_id"
+        def new_get_serializer_class(old_method):
+            def inner(self, output: bool = False):
+                serializer = old_method.__get__(self, new_view)(output)
+                new_serializer = type(f"Deprecated{serializer.__name__}", (serializer,), {})
+                new_serializer.__doc__ = serializer.__doc__ or ""
+                return new_serializer
+
+            return inner
+
+        new_view: Type[CompatibleView] = type(f"Deprecated{_view.__name__}", (_view,), {})  # type: ignore
+        new_view.__doc__ = _view.__doc__ or ""
+        new_view.get_serializer_class = new_get_serializer_class(new_view.get_serializer_class)
+
+        if _methods is None:
+            _methods = list(get_methods(new_view.as_view()))
+
+        new_view.schema = copy.deepcopy(new_view.schema)
+        new_view.schema.deprecated = _methods
+        return new_view  # type: ignore
+
+    if callable(__view):
+        return view(__view, methods)  # type: ignore
+
+    return partial(view, _methods=methods)  # type: ignore

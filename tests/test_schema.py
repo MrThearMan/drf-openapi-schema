@@ -7,8 +7,8 @@ from rest_framework.serializers import Serializer
 from rest_framework.test import APIClient
 from serializer_inference.serializers import MockSerializer
 
-from openapi_schema.generator import PipelineSchemaGenerator
-from openapi_schema.schema import PipelineSchema
+from openapi_schema.generator import OpenAPISchemaGenerator
+from openapi_schema.schema import OpenAPISchema
 from openapi_schema.utils import EmptySerializer
 from tests.django.urls import (
     ExamplePathView,
@@ -60,7 +60,7 @@ def test_schema__get_components(drf_request):
 
 
 def test_schema__get_webhook(drf_request):
-    schema = PipelineSchemaGenerator(
+    schema = OpenAPISchemaGenerator(
         root_url="api",
         webhooks={
             "Example": {
@@ -170,7 +170,7 @@ def test_schema__get_components__from_schema(drf_request):
     class CustomView(ExampleView):
         """Custom View"""
 
-        schema = PipelineSchema(
+        schema = OpenAPISchema(
             responses={
                 "POST": {
                     200: ...,
@@ -247,7 +247,7 @@ def test_schema__get_components__list(drf_request):
             ],
         }
 
-        schema = PipelineSchema(
+        schema = OpenAPISchema(
             responses={
                 "POST": {
                     200: ...,
@@ -299,7 +299,7 @@ def test_schema__get_components__union(drf_request):
     class CustomView(ExampleView):
         """Custom View"""
 
-        schema = PipelineSchema(
+        schema = OpenAPISchema(
             responses={
                 "POST": {
                     200: ...,
@@ -360,7 +360,7 @@ def test_schema__get_responses__from_schema(drf_request):
     class CustomView(ExampleView):
         """Custom View"""
 
-        schema = PipelineSchema(
+        schema = OpenAPISchema(
             responses={
                 "POST": {
                     200: ...,
@@ -435,7 +435,7 @@ def test_schema__get_responses__none(drf_request):
     class CustomView(ExampleView):
         """Custom View"""
 
-        schema = PipelineSchema()
+        schema = OpenAPISchema()
 
     view = CustomView()
     view.request = drf_request
@@ -481,7 +481,7 @@ def test_schema__get_responses__union(drf_request):
     class CustomView(ExampleView):
         """Custom View"""
 
-        schema = PipelineSchema(
+        schema = OpenAPISchema(
             responses={
                 "POST": {
                     200: ...,
@@ -559,7 +559,7 @@ def test_schema__get_responses__list(drf_request):
     class CustomView(ExampleView):
         """Custom View"""
 
-        schema = PipelineSchema(
+        schema = OpenAPISchema(
             responses={
                 "POST": {
                     200: ...,
@@ -651,7 +651,7 @@ def test_schema__get_responses__mock_serializer(drf_request):
             ]
         }
 
-        schema = PipelineSchema(
+        schema = OpenAPISchema(
             responses={
                 "POST": {
                     200: ...,
@@ -754,7 +754,7 @@ def test_schema__get_responses__add_204_if_output_is_list(drf_request):
             ]
         }
 
-        schema = PipelineSchema()
+        schema = OpenAPISchema()
 
     view = CustomView()
     view.request = drf_request
@@ -814,7 +814,7 @@ def test_schema__get_responses__204_if_output_is_emptyserializer(drf_request):
             ]
         }
 
-        schema = PipelineSchema()
+        schema = OpenAPISchema()
 
     view = CustomView()
     view.request = drf_request
@@ -864,7 +864,7 @@ def test_schema__get_operation(drf_request):
     class CustomView(ExamplePathView):
         """Custom View"""
 
-        schema = PipelineSchema(
+        schema = OpenAPISchema(
             responses={
                 "PATCH": {
                     200: ...,
@@ -1148,7 +1148,7 @@ def test_schema__get_parameters__query(drf_request):
             ],
         }
 
-        schema = PipelineSchema(
+        schema = OpenAPISchema(
             query_parameters={
                 "POST": ["name", "age"],
             },
@@ -1193,7 +1193,7 @@ def test_schema__get_parameters__query__not_defined(drf_request):
             ],
         }
 
-        schema = PipelineSchema()
+        schema = OpenAPISchema()
 
     view = CustomView()
     view.request = drf_request
@@ -1215,7 +1215,7 @@ def test_schema__get_parameters__query__default_for_get(drf_request):
             ],
         }
 
-        schema = PipelineSchema()
+        schema = OpenAPISchema()
 
     view = CustomView()
     view.request = drf_request
@@ -1256,7 +1256,7 @@ def test_schema__get_parameters__query__partial(drf_request):
             ],
         }
 
-        schema = PipelineSchema(
+        schema = OpenAPISchema(
             query_parameters={
                 "PUT": ["name"],
             },
@@ -1295,7 +1295,7 @@ def test_schema__get__parameters__query__list(drf_request):
             ],
         }
 
-        schema = PipelineSchema(
+        schema = OpenAPISchema(
             query_parameters={
                 "POST": ["name", "age"],
             },
@@ -1434,7 +1434,7 @@ def test_schema__get_parameters__header(drf_request):
             ],
         }
 
-        schema = PipelineSchema(
+        schema = OpenAPISchema(
             header_parameters={
                 "POST": ["name", "age"],
             },
@@ -1479,7 +1479,7 @@ def test_schema__get_parameters__header__partial(drf_request):
             ],
         }
 
-        schema = PipelineSchema(
+        schema = OpenAPISchema(
             header_parameters={
                 "POST": ["name"],
             },
@@ -1522,7 +1522,7 @@ def test_pipeline_scheme__get_parameters__header__list(drf_request):
             ],
         }
 
-        schema = PipelineSchema(
+        schema = OpenAPISchema(
             header_parameters={
                 "PATCH": ["data"],
             },
@@ -1565,7 +1565,7 @@ def test_schema__get_parameters__header__special_serializer(drf_request):
             ],
         }
 
-        schema = PipelineSchema()
+        schema = OpenAPISchema()
 
     view = CustomView()
     view.request = drf_request
@@ -1597,7 +1597,7 @@ def test_schema__get_parameters__cookie(drf_request):
             ],
         }
 
-        schema = PipelineSchema(
+        schema = OpenAPISchema(
             cookie_parameters={
                 "POST": ["name", "age"],
             },
@@ -1642,7 +1642,7 @@ def test_schema__get_parameters__cookie__partial(drf_request):
             ],
         }
 
-        schema = PipelineSchema(
+        schema = OpenAPISchema(
             cookie_parameters={
                 "POST": ["name"],
             },
@@ -1685,7 +1685,7 @@ def test_pipeline_scheme__get_parameters__cookie__list(drf_request):
             ],
         }
 
-        schema = PipelineSchema(
+        schema = OpenAPISchema(
             cookie_parameters={
                 "PATCH": ["data"],
             },
@@ -1728,7 +1728,7 @@ def test_schema__get_parameters__cookie__special_serializer(drf_request):
             ],
         }
 
-        schema = PipelineSchema()
+        schema = OpenAPISchema()
 
     view = CustomView()
     view.request = drf_request
@@ -1787,7 +1787,7 @@ def test_schema__get_request_body__get(drf_request):
             ],
         }
 
-        schema = PipelineSchema()
+        schema = OpenAPISchema()
 
     view = CustomView()
     view.request = drf_request
@@ -1809,7 +1809,7 @@ def test_schema__get_request_body__query_parameters(drf_request):
             ],
         }
 
-        schema = PipelineSchema(
+        schema = OpenAPISchema(
             query_parameters={"PUT": ["name"]},
         )
 
@@ -1869,7 +1869,7 @@ def test_schema__get_tags__predefined(drf_request):
     class CustomView(ExampleView):
         """Custom View"""
 
-        schema = PipelineSchema(tags=["foo", "bar"])
+        schema = OpenAPISchema(tags=["foo", "bar"])
 
     view = CustomView()
     view.request = drf_request

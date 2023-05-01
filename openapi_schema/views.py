@@ -10,7 +10,7 @@ from rest_framework.response import Response
 from rest_framework.settings import api_settings
 from rest_framework.views import APIView
 
-from .generator import PipelineSchemaGenerator
+from .generator import OpenAPISchemaGenerator
 from .typing import (
     APIContact,
     APILicense,
@@ -25,10 +25,10 @@ from .typing import (
 )
 
 
-class PipelineSchemaView(APIView):
+class OpenAPISchemaView(APIView):
     _ignore_model_permissions: bool = True
     schema = None  # exclude from schema
-    schema_generator = PipelineSchemaGenerator()
+    schema_generator = OpenAPISchemaGenerator()
     renderer_classes = [OpenAPIRenderer, JSONOpenAPIRenderer]
     public: bool = True
 
@@ -90,7 +90,7 @@ def get_schema_view(
     :param permission_classes: Permission classes for the OpenAPI SchemaView.
     """
 
-    generator = PipelineSchemaGenerator(
+    generator = OpenAPISchemaGenerator(
         title=title,
         root_url=root_url,
         description=description,
@@ -105,7 +105,7 @@ def get_schema_view(
         terms_of_service=terms_of_service,
     )
 
-    return PipelineSchemaView.as_view(  # type: ignore
+    return OpenAPISchemaView.as_view(  # type: ignore
         schema_generator=generator,
         public=public,
         authentication_classes=(

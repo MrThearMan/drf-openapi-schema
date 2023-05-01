@@ -53,7 +53,7 @@ from .utils import (
 )
 
 
-class PipelineSchema:
+class OpenAPISchema:
     def __init__(
         self,
         *,
@@ -70,10 +70,10 @@ class PipelineSchema:
         tags: Optional[List[TagName]] = None,
         operation_id_base: Optional[OperationBaseName] = None,
     ):
-        """Create an OpenAPI 3.0.2 schema for a PipelineView.
+        """Create an OpenAPI 3.0.2 schema for a Django Rest Framework view.
 
         :param responses: Additional responses given in the endpoints.
-        :param callbacks: Asynchronous, out-of-band requests that are made during the pipeline.
+        :param callbacks: Asynchronous, out-of-band requests that are made on the endpoint.
                           https://swagger.io/docs/specification/callbacks/
         :param links: Describes how the endpoints relate to other endpoints.
                       https://swagger.io/docs/specification/links/
@@ -103,7 +103,7 @@ class PipelineSchema:
 
         self.__view: Optional[CompatibleView] = None
 
-    def __get__(self, instance: Optional[CompatibleView], owner: Type[CompatibleView]) -> "PipelineSchema":
+    def __get__(self, instance: Optional[CompatibleView], owner: Type[CompatibleView]) -> "OpenAPISchema":
         self.__view = instance
         return self
 
