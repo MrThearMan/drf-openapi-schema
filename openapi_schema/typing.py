@@ -1,27 +1,19 @@
 from __future__ import annotations
 
+from types import ModuleType
 from typing import (
+    Annotated,
     Any,
     Callable,
-    Dict,
     Generator,
-    List,
     Literal,
     Optional,
     Protocol,
     Sequence,
-    Tuple,
-    Type,
     TypedDict,
     TypeVar,
     Union,
 )
-
-# New in version 3.9
-try:
-    from typing import Annotated
-except ImportError:
-    from typing_extensions import Annotated
 
 # New in version 3.10
 try:
@@ -45,18 +37,106 @@ from rest_framework.response import Response
 from rest_framework.serializers import Serializer
 
 __all__ = [
-    "TypeGuard",
+    "Annotated",
+    "Any",
+    "APICallback",
+    "APIComponents",
+    "APIContact",
+    "APIDiscriminator",
+    "APIEncoding",
+    "APIExample",
+    "APIExternalDocumentation",
+    "APIHeader",
+    "APIInfo",
+    "APIKeySecurityScheme",
+    "APIKeySecurityType",
+    "APILicense",
+    "APILinks",
+    "APIMediaType",
+    "APIOperation",
+    "APIParameter",
+    "APIPathItem",
+    "APIPaths",
+    "APIReference",
+    "APIRequestBody",
+    "APIResponse",
+    "APIResponses",
+    "APISchema",
+    "APISecurityRequirement",
+    "APISecurityScheme",
+    "APIServer",
+    "APIServerVariable",
+    "APIStyle",
+    "APITag",
+    "APIType",
+    "APIXML",
+    "AsView",
+    "AuthOrPerm",
+    "AuthScheme",
+    "Callable",
+    "CompatibleSchema",
+    "CompatibleView",
+    "ComponentName",
+    "CookieParameter",
+    "ErrorText",
+    "EventName",
     "Generator",
+    "Generator",
+    "GenericView",
+    "HeaderParameter",
+    "http_method",
+    "HTTPMethod",
+    "HTTPSecurityScheme",
+    "HTTPSecurityType",
+    "Literal",
+    "MediaType",
+    "ModuleType",
+    "MutualTLSSecurityScheme",
+    "MutualTLSSecurityType",
+    "OAuth2SecurityScheme",
+    "OAuth2SecurityType",
+    "OAuthFlowAuthorizationCode",
+    "OAuthFlowClientCredentials",
+    "OAuthFlowImplicit",
+    "OAuthFlowPassword",
+    "OAuthFlows",
+    "OpenAPI",
+    "OpenIDConnectSecurityScheme",
+    "OpenIDConnectSecurityType",
+    "OperationBaseName",
+    "Optional",
+    "PathAndMethod",
+    "PathParameter",
+    "Protocol",
+    "QueryParameter",
+    "Required",
+    "ResponseKind",
+    "SchemaCallbackData",
+    "SchemaLinks",
+    "SchemaWebhook",
+    "SchemeName",
+    "ScopeName",
+    "SecurityRules",
+    "SecuritySchemeType",
+    "SerializerOrSerializerType",
+    "SerializerType",
+    "StatusCode",
+    "TypeAlias",
+    "TypedDict",
+    "TypeGuard",
+    "TypeVar",
+    "Union",
+    "UrlPath",
 ]
 
 
-SerializerType: TypeAlias = Type[Serializer]
+SerializerType: TypeAlias = type[Serializer]
 SerializerOrSerializerType = Union[Serializer, SerializerType]
 
 HTTPMethod: TypeAlias = Literal["GET", "POST", "PUT", "PATCH", "DELETE"]
 http_method: TypeAlias = Literal["get", "post", "put", "patch", "delete", "trace", "options"]
-AuthOrPerm: TypeAlias = Union[Type[BasePermission], Type[BaseAuthentication]]
-SecurityRules: TypeAlias = Dict[Union[Tuple[AuthOrPerm, ...], AuthOrPerm], Dict[str, List[str]]]
+AuthOrPerm: TypeAlias = Union[type[BasePermission], type[BaseAuthentication]]
+SecurityRules: TypeAlias = dict[Union[tuple[AuthOrPerm, ...], AuthOrPerm], dict[str, list[str]]]
 
 UrlPath: TypeAlias = str
 EventName: TypeAlias = str
@@ -85,19 +165,23 @@ class CompatibleSchema(Protocol):
 
 
 class CompatibleView(Protocol):
-    http_method_names: List[http_method]
-    allowed_methods: List[http_method]
+    http_method_names: list[http_method]
+    allowed_methods: list[http_method]
     request: Optional[Request]
 
-    renderer_classes: Sequence[Type[BaseRenderer]]
-    parser_classes: Sequence[Type[BaseParser]]
-    authentication_classes: Sequence[Type[BaseAuthentication]]
-    permission_classes: Sequence[Type[BasePermission]]
+    renderer_classes: Sequence[type[BaseRenderer]]
+    parser_classes: Sequence[type[BaseParser]]
+    authentication_classes: Sequence[type[BaseAuthentication]]
+    permission_classes: Sequence[type[BasePermission]]
 
     schema: CompatibleSchema
 
     def __init__(self, *args, **kwargs):
         """Init"""
+
+    @classmethod
+    def as_view(cls, **kwargs):
+        """As View"""
 
     def get_serializer(self, *args: Any, **kwargs: Any) -> Serializer:
         """Get serializer"""
@@ -112,8 +196,8 @@ class CompatibleView(Protocol):
 class AsView(Protocol[_View]):
     cls: type[CompatibleView]
     view_class: type[CompatibleView]
-    view_initkwargs: Dict[str, Any]
-    initkwargs: Dict[str, Any]
+    view_initkwargs: dict[str, Any]
+    initkwargs: dict[str, Any]
     csrf_exempt: bool
     __call__: _View
 
@@ -126,18 +210,18 @@ class GenericView(Protocol):
 class SchemaWebhook(TypedDict):
     method: http_method
     request_data: SerializerType
-    responses: Dict[int, Union[str, SerializerType]]
+    responses: dict[int, Union[str, SerializerType]]
 
 
 class SchemaLinks(TypedDict):
     method: HTTPMethod
     request_data: SerializerType
-    responses: Dict[int, Union[str, SerializerType]]
+    responses: dict[int, Union[str, SerializerType]]
 
 
 class SchemaCallbackData(TypedDict):
     request_body: SerializerType
-    responses: Dict[int, SerializerType]
+    responses: dict[int, SerializerType]
 
 
 class PathAndMethod(TypedDict):
@@ -158,12 +242,12 @@ class OpenAPI(TypedDict, total=False):
     openapi: Required[Literal["3.0.2"]]
     info: Required[APIInfo]
     jsonSchemaDialect: str
-    servers: List[APIServer]
+    servers: list[APIServer]
     paths: APIPaths
-    webhooks: Dict[Annotated[str, "webhook_name"], Union[APIPathItem, APIReference]]
+    webhooks: dict[Annotated[str, "webhook_name"], Union[APIPathItem, APIReference]]
     components: APIComponents
-    security: List[APISecurityRequirement]
-    tags: List[APITag]
+    security: list[APISecurityRequirement]
+    tags: list[APITag]
     externalDocs: APIExternalDocumentation
 
 
@@ -191,26 +275,26 @@ class APILicense(TypedDict, total=False):
 class APIServer(TypedDict, total=False):
     url: Required[str]
     description: str
-    variables: Dict[Annotated[str, "variable_name"], APIServerVariable]
+    variables: dict[Annotated[str, "variable_name"], APIServerVariable]
 
 
 class APIServerVariable(TypedDict, total=False):
-    enum: List[str]
+    enum: list[str]
     default: Required[str]
     description: str
 
 
 class APIComponents(TypedDict, total=False):
-    schemas: Dict[Annotated[str, "component_name"], APISchema]
-    responses: Dict[Annotated[str, "response_name"], Union[APIResponse, APIReference]]
-    parameters: Dict[Annotated[str, "parameter_name"], Union[APIParameter, APIReference]]
-    examples: Dict[Annotated[str, "example_name"], Union[APIExample, APIReference]]
-    requestBodies: Dict[Annotated[str, "request_body_name"], Union[APIRequestBody, APIReference]]
-    headers: Dict[Annotated[str, "header_name"], Union[APIHeader, APIReference]]
-    securitySchemes: Dict[Annotated[str, "security_scheme_name"], Union[APISecurityScheme, APIReference]]
-    links: Dict[Annotated[str, "link_name"], Union[APILinks, APIReference]]
-    callbacks: Dict[Annotated[str, "callback_name"], Union[APICallback, APIReference]]
-    pathItems: Dict[Annotated[str, "path_item_name"], Union[APIPathItem, APIReference]]
+    schemas: dict[Annotated[str, "component_name"], APISchema]
+    responses: dict[Annotated[str, "response_name"], Union[APIResponse, APIReference]]
+    parameters: dict[Annotated[str, "parameter_name"], Union[APIParameter, APIReference]]
+    examples: dict[Annotated[str, "example_name"], Union[APIExample, APIReference]]
+    requestBodies: dict[Annotated[str, "request_body_name"], Union[APIRequestBody, APIReference]]
+    headers: dict[Annotated[str, "header_name"], Union[APIHeader, APIReference]]
+    securitySchemes: dict[Annotated[str, "security_scheme_name"], Union[APISecurityScheme, APIReference]]
+    links: dict[Annotated[str, "link_name"], Union[APILinks, APIReference]]
+    callbacks: dict[Annotated[str, "callback_name"], Union[APICallback, APIReference]]
+    pathItems: dict[Annotated[str, "path_item_name"], Union[APIPathItem, APIReference]]
 
 
 class APIPathItem(_APIRefNotRequired, total=False):
@@ -224,26 +308,26 @@ class APIPathItem(_APIRefNotRequired, total=False):
     head: APIOperation
     patch: APIOperation
     trace: APIOperation
-    servers: List[APIServer]
-    parameters: List[Union[APIParameter, APIReference]]
+    servers: list[APIServer]
+    parameters: list[Union[APIParameter, APIReference]]
 
 
-APIPaths = Dict[Annotated[str, "/{path}"], APIPathItem]
+APIPaths = dict[Annotated[str, "/{path}"], APIPathItem]
 
 
 class APIOperation(TypedDict, total=False):
-    tags: List[str]
+    tags: list[str]
     summary: str
     description: str
     externalDocs: APIExternalDocumentation
     operationId: Annotated[str, "unique"]
-    parameters: List[Union[APIParameter, APIReference]]
+    parameters: list[Union[APIParameter, APIReference]]
     requestBody: Union[APIRequestBody, APIReference]
     responses: APIResponses
-    callbacks: Dict[str, Dict[str, Union[APIPathItem, APIReference]]]
+    callbacks: dict[str, dict[str, Union[APIPathItem, APIReference]]]
     deprecated: bool
-    security: List[Dict[str, List[str]]]
-    servers: List[APIServer]
+    security: list[dict[str, list[str]]]
+    servers: list[APIServer]
 
 
 class APIExternalDocumentation(TypedDict, total=False):
@@ -367,12 +451,12 @@ class APIParameter(_APIParameter, total=False):
     allowReserved: bool
     schema: APISchema
     example: Any
-    examples: Dict[Annotated[str, "example_name"], Union[APIExample, APIReference]]
-    content: Dict[MediaType, APIMediaType]
+    examples: dict[Annotated[str, "example_name"], Union[APIExample, APIReference]]
+    content: dict[MediaType, APIMediaType]
 
 
 class APIRequestBody(TypedDict, total=False):
-    content: Required[Dict[MediaType, APIMediaType]]
+    content: Required[dict[MediaType, APIMediaType]]
     description: str
     required: bool
 
@@ -380,13 +464,13 @@ class APIRequestBody(TypedDict, total=False):
 class APIMediaType(TypedDict, total=False):
     schema: APISchema
     example: Any
-    examples: Dict[Annotated[str, "example_name"], Union[APIExample, APIReference]]
-    encoding: Dict[Annotated[str, "property_name"], APIEncoding]
+    examples: dict[Annotated[str, "example_name"], Union[APIExample, APIReference]]
+    encoding: dict[Annotated[str, "property_name"], APIEncoding]
 
 
 class APIEncoding(TypedDict, total=False):
     contentType: MediaType
-    headers: Dict[Annotated[str, "header_name"], Union[APIHeader, APIReference]]
+    headers: dict[Annotated[str, "header_name"], Union[APIHeader, APIReference]]
     style: APIStyle
     explode: bool
     allowReserved: bool
@@ -394,9 +478,9 @@ class APIEncoding(TypedDict, total=False):
 
 class APIResponse(TypedDict, total=False):
     description: Required[str]
-    headers: Dict[Annotated[str, "header_name"], Union[APIHeader, APIReference]]
-    content: Dict[MediaType, Union[APIMediaType, APIReference]]
-    links: Dict[Annotated[str, "link_name"], Union[APILinks, APIReference]]
+    headers: dict[Annotated[str, "header_name"], Union[APIHeader, APIReference]]
+    content: dict[MediaType, Union[APIMediaType, APIReference]]
+    links: dict[Annotated[str, "link_name"], Union[APILinks, APIReference]]
 
 
 _APIResponses = TypedDict(
@@ -916,7 +1000,7 @@ class APIResponses(_APIResponses, total=False):
     default: Union[APIResponse, APIReference]
 
 
-APICallback = Dict[Annotated[str, "callback_url"], Union[APIPathItem, APIReference]]
+APICallback = dict[Annotated[str, "callback_url"], Union[APIPathItem, APIReference]]
 
 
 class APIExample(TypedDict, total=False):
@@ -929,7 +1013,7 @@ class APIExample(TypedDict, total=False):
 class APILinks(TypedDict, total=False):
     operationRef: Annotated[str, "ref"]
     operationId: Annotated[str, "unique"]
-    parameters: Dict[str, Any]
+    parameters: dict[str, Any]
     requestBody: Any
     description: str
     server: APIServer
@@ -945,8 +1029,8 @@ class APIHeader(TypedDict, total=False):
     allowReserved: bool
     schema: APISchema
     example: Any
-    examples: Dict[Annotated[str, "example_name"], Union[APIExample, APIReference]]
-    content: Dict[MediaType, APIMediaType]
+    examples: dict[Annotated[str, "example_name"], Union[APIExample, APIReference]]
+    content: dict[MediaType, APIMediaType]
 
 
 class APITag(TypedDict, total=False):
@@ -1018,26 +1102,26 @@ class OAuthFlows(TypedDict, total=False):
 class OAuthFlowImplicit(TypedDict, total=False):
     authorizationUrl: Required[str]
     refreshUrl: str
-    scopes: Required[Dict[Annotated[str, "scope_name"], Annotated[str, "short_description"]]]
+    scopes: Required[dict[Annotated[str, "scope_name"], Annotated[str, "short_description"]]]
 
 
 class OAuthFlowPassword(TypedDict, total=False):
     tokenUrl: Required[str]
     refreshUrl: str
-    scopes: Required[Dict[Annotated[str, "scope_name"], Annotated[str, "short_description"]]]
+    scopes: Required[dict[Annotated[str, "scope_name"], Annotated[str, "short_description"]]]
 
 
 class OAuthFlowClientCredentials(TypedDict, total=False):
     tokenUrl: Required[str]
     refreshUrl: str
-    scopes: Required[Dict[Annotated[str, "scope_name"], Annotated[str, "short_description"]]]
+    scopes: Required[dict[Annotated[str, "scope_name"], Annotated[str, "short_description"]]]
 
 
 class OAuthFlowAuthorizationCode(TypedDict, total=False):
     authorizationUrl: Required[str]
     tokenUrl: Required[str]
     refreshUrl: str
-    scopes: Required[Dict[Annotated[str, "scope_name"], Annotated[str, "short_description"]]]
+    scopes: Required[dict[Annotated[str, "scope_name"], Annotated[str, "short_description"]]]
 
 
 class OpenIDConnectSecurityScheme(TypedDict, total=False):
@@ -1053,19 +1137,19 @@ APISecurityScheme = Union[
     OAuth2SecurityScheme,
     OpenIDConnectSecurityScheme,
 ]
-APISecurityRequirement = Dict[SecuritySchemeType, List[Annotated[str, "scope_name"]]]
+APISecurityRequirement = dict[SecuritySchemeType, list[Annotated[str, "scope_name"]]]
 APIType = Literal["string", "integer", "number", "boolean", "object", "array"]
 
 
 class APISchema(_APIRefNotRequired, total=False):
     type: APIType
     items: APISchema
-    properties: Dict[Annotated[str, "property_name"], APISchema]
-    required: List[Annotated[str, "property_name"]]
+    properties: dict[Annotated[str, "property_name"], APISchema]
+    required: list[Annotated[str, "property_name"]]
     default: str
     description: str
     format: Literal["binary", "int64", "decimal", "date", "date-time", "email", "uri", "uuid", "ipv4", "ipv6"]
-    enum: List[str]
+    enum: list[str]
     readOnly: bool
     writeOnly: bool
     nullable: bool
@@ -1075,7 +1159,7 @@ class APISchema(_APIRefNotRequired, total=False):
     maxItems: float
     multipleOf: float
     pattern: Annotated[str, "regex"]
-    content: Dict[MediaType, APIMediaType]
+    content: dict[MediaType, APIMediaType]
     contentMediaType: MediaType
     contentEncoding: Literal["base64", "base64url", "base32", "base32hex", "base16", "hex", "quoted-printable"]
     discriminator: APIDiscriminator
@@ -1089,7 +1173,7 @@ class APISchema(_APIRefNotRequired, total=False):
 
 class APIDiscriminator(TypedDict, total=False):
     propertyName: Required[str]
-    mapping: Dict[Annotated[str, "name"], Annotated[str, "ref_or_link"]]
+    mapping: dict[Annotated[str, "name"], Annotated[str, "ref_or_link"]]
 
 
 class APIXML(TypedDict, total=False):

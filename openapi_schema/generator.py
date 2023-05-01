@@ -19,17 +19,14 @@ from .typing import (
     APISecurityScheme,
     CompatibleView,
     ComponentName,
-    Dict,
     EventName,
     HTTPMethod,
-    List,
     OpenAPI,
     Optional,
     PathAndMethod,
     SchemaWebhook,
     SchemeName,
     SecurityRules,
-    Tuple,
     Union,
     UrlPath,
 )
@@ -43,24 +40,24 @@ from .utils import (
 )
 
 
-class PipelineSchemaGenerator:
+class OpenAPISchemaGenerator:
     def __init__(
         self,
         *,
         title: Optional[str] = None,
         root_url: Optional[UrlPath] = None,
         description: Optional[str] = None,
-        patterns: Optional[List[Union[URLPattern, URLResolver]]] = None,
+        patterns: Optional[list[Union[URLPattern, URLResolver]]] = None,
         urlconf: Optional[Union[str, ModuleType]] = None,
         version: Optional[str] = None,
-        webhooks: Optional[Dict[EventName, SchemaWebhook]] = None,
+        webhooks: Optional[dict[EventName, SchemaWebhook]] = None,
         contact: Optional[APIContact] = None,
         license: Optional[APILicense] = None,
-        security_schemes: Optional[Dict[SchemeName, APISecurityScheme]] = None,
+        security_schemes: Optional[dict[SchemeName, APISecurityScheme]] = None,
         security_rules: Optional[SecurityRules] = None,
         terms_of_service: UrlPath = "",
     ):
-        """Custom Schema Generator for Pipeline Views.
+        """Custom Schema Generator for Django Rest Framework views.
 
         :param title: The name of the API (required).
         :param root_url: The root URL prefix of the API schema. Useful for defining versioned API.
@@ -99,9 +96,9 @@ class PipelineSchemaGenerator:
         self.security_schemes = security_schemes or {}
         self.security_rules = security_rules or {}
         self.terms_of_service = terms_of_service
-        self.endpoints: Optional[List[Tuple[str, HTTPMethod, CompatibleView]]] = None
+        self.endpoints: Optional[list[tuple[str, HTTPMethod, CompatibleView]]] = None
 
-    def get_endpoints(self, request: Optional[Request]) -> List[Tuple[UrlPath, HTTPMethod, CompatibleView]]:
+    def get_endpoints(self, request: Optional[Request]) -> list[tuple[UrlPath, HTTPMethod, CompatibleView]]:
         if self.endpoints is None:
             if self.patterns is None:
                 if self.urlconf is None:
@@ -117,7 +114,7 @@ class PipelineSchemaGenerator:
     def get_schema(self, request: Optional[Request], public: bool) -> OpenAPI:
         schema: OpenAPI = OpenAPI(openapi="3.0.2", info=self.get_info())
 
-        operation_ids: Dict[str, PathAndMethod] = {}
+        operation_ids: dict[str, PathAndMethod] = {}
 
         for path, method, view in self.get_endpoints(None if public else request):
             self.set_security_schemes(method, view)
@@ -216,11 +213,11 @@ class PipelineSchemaGenerator:
         local_path: UrlPath,
         method: HTTPMethod,
         view: CompatibleView,
-    ) -> Dict[ComponentName, APISchema]:
+    ) -> dict[ComponentName, APISchema]:
         return view.schema.get_components(local_path, method)
 
-    def get_webhook(self) -> Dict[EventName, APIPathItem]:
-        webhooks: Dict[EventName, APIPathItem] = {}  # type: ignore
+    def get_webhook(self) -> dict[EventName, APIPathItem]:
+        webhooks: dict[EventName, APIPathItem] = {}  # type: ignore
 
         for webhook_name, webhook in self.webhooks.items():
             input_serializer = webhook["request_data"](many=getattr(webhook["request_data"], "many", False))

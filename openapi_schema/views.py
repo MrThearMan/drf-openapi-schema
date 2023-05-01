@@ -1,6 +1,3 @@
-from types import ModuleType
-from typing import Dict, List, Optional, Type, Union
-
 from django.urls import URLPattern, URLResolver
 from rest_framework.authentication import BaseAuthentication
 from rest_framework.permissions import BasePermission
@@ -10,7 +7,7 @@ from rest_framework.response import Response
 from rest_framework.settings import api_settings
 from rest_framework.views import APIView
 
-from .generator import PipelineSchemaGenerator
+from .generator import OpenAPISchemaGenerator
 from .typing import (
     APIContact,
     APILicense,
@@ -18,17 +15,20 @@ from .typing import (
     AsView,
     EventName,
     GenericView,
+    ModuleType,
+    Optional,
     SchemaWebhook,
     SchemeName,
     SecurityRules,
+    Union,
     UrlPath,
 )
 
 
-class PipelineSchemaView(APIView):
+class OpenAPISchemaView(APIView):
     _ignore_model_permissions: bool = True
     schema = None  # exclude from schema
-    schema_generator = PipelineSchemaGenerator()
+    schema_generator = OpenAPISchemaGenerator()
     renderer_classes = [OpenAPIRenderer, JSONOpenAPIRenderer]
     public: bool = True
 
@@ -55,18 +55,18 @@ def get_schema_view(
     title: Optional[str] = None,
     root_url: Optional[UrlPath] = None,
     description: Optional[str] = None,
-    patterns: Optional[List[Union[URLPattern, URLResolver]]] = None,
+    patterns: Optional[list[Union[URLPattern, URLResolver]]] = None,
     urlconf: Optional[Union[str, ModuleType]] = None,
     version: Optional[str] = None,
-    webhooks: Optional[Dict[EventName, SchemaWebhook]] = None,
+    webhooks: Optional[dict[EventName, SchemaWebhook]] = None,
     contact: Optional[APIContact] = None,
     license: Optional[APILicense] = None,
     terms_of_service: UrlPath = "",
     public: Optional[bool] = None,
-    security_schemes: Optional[Dict[SchemeName, APISecurityScheme]] = None,
+    security_schemes: Optional[dict[SchemeName, APISecurityScheme]] = None,
     security_rules: Optional[SecurityRules] = None,
-    authentication_classes: Optional[List[Type[BaseAuthentication]]] = None,
-    permission_classes: Optional[List[Type[BasePermission]]] = None,
+    authentication_classes: Optional[list[type[BaseAuthentication]]] = None,
+    permission_classes: Optional[list[type[BasePermission]]] = None,
 ) -> AsView[GenericView]:
     """Return a schema view.
 
@@ -90,7 +90,7 @@ def get_schema_view(
     :param permission_classes: Permission classes for the OpenAPI SchemaView.
     """
 
-    generator = PipelineSchemaGenerator(
+    generator = OpenAPISchemaGenerator(
         title=title,
         root_url=root_url,
         description=description,
@@ -105,7 +105,7 @@ def get_schema_view(
         terms_of_service=terms_of_service,
     )
 
-    return PipelineSchemaView.as_view(  # type: ignore
+    return OpenAPISchemaView.as_view(  # type: ignore
         schema_generator=generator,
         public=public,
         authentication_classes=(

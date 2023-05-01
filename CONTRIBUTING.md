@@ -125,13 +125,10 @@ when installed with `make hook`
 
 - All code should be typed when possible.
   - Tests are an exception to this; typing them is optional.
-  - Make sure the typing methods used are supported in all python versions
-    the library supports (e.g., use `List[int]` instead of `list[int]` for Python 3.8 support).
-    CI will yell at you if you don't.
   - Create all custom types in `openapi_schema/typing.py` and import them from there.
     This avoids circular imports.
   - Use of `TypedDict` is encouraged where dicts would be used.
-  - Also import common types like `List` from `openapi_schema/typing.py` instead of the built-in `typing` module.
+  - Also import common types like `TypedDict` from `openapi_schema/typing.py` instead of the built-in `typing` module.
     This is to make importing types more consistent across the codebase, and allows conditional import
     logic with the `typing_extensions` module for newer typing methods like `ParamSpec` to be contained
     in a single place.

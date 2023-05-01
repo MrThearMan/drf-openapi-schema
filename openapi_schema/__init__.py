@@ -1,11 +1,11 @@
-from .generator import PipelineSchemaGenerator
-from .schema import PipelineSchema
+from .generator import OpenAPISchemaGenerator
+from .schema import OpenAPISchema
 from .utils import EmptySerializer
-from .views import PipelineSchemaView
+from .views import OpenAPISchemaView
 
 __all__ = [
     "EmptySerializer",
-    "PipelineSchema",
-    "PipelineSchemaGenerator",
-    "PipelineSchemaView",
+    "OpenAPISchema",
+    "OpenAPISchemaGenerator",
+    "OpenAPISchemaView",
 ]

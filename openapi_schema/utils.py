@@ -1,6 +1,8 @@
+import copy
 import re
 import warnings
 from decimal import Decimal
+from functools import partial
 from inspect import cleandoc
 
 from django.contrib.admindocs.views import simplify_regex
@@ -20,28 +22,27 @@ from .typing import (
     AsView,
     CompatibleView,
     ComponentName,
-    Dict,
     Generator,
     HTTPMethod,
-    List,
     Optional,
     PathAndMethod,
     SerializerOrSerializerType,
-    Tuple,
     TypeGuard,
     Union,
     UrlPath,
 )
 
 url_variables_pattern = re.compile("{([^}]+)}")
-serializer_pattern = re.compile("serializer", re.IGNORECASE)
+serializer_pattern = re.compile("serializer", flags=re.IGNORECASE)
+path_parameter_pattern = re.compile(r"<[^>:]*:?(?P<parameter>\w+)>")
+path_format_parameter = re.compile(r"^[^.]*[.]\{[^}]+}/?$")
 
 
 def is_serializer_class(obj: Any) -> TypeGuard[Serializer]:
     return isinstance(obj, type) and issubclass(obj, Serializer)
 
 
-def convert_to_schema(schema: Union[List[Any], Dict[str, Any], Any]) -> APISchema:
+def convert_to_schema(schema: Union[list[Any], dict[str, Any], Any]) -> APISchema:
     """Recursively convert a json-like object to OpenAPI example response."""
     if isinstance(schema, list):
         return APISchema(
@@ -251,11 +252,11 @@ def map_field_validators(field: fields.Field, schema: APISchema) -> None:  # pra
 
 
 def get_api_endpoints(
-    patterns: List[Union[URLPattern, URLResolver]],
+    patterns: list[Union[URLPattern, URLResolver]],
     root: UrlPath,
     request: Optional[Request],
-) -> List[Tuple[UrlPath, HTTPMethod, CompatibleView]]:
-    api_endpoints: List[Tuple[UrlPath, HTTPMethod, CompatibleView]] = []
+) -> list[tuple[UrlPath, HTTPMethod, CompatibleView]]:
+    api_endpoints: list[tuple[UrlPath, HTTPMethod, CompatibleView]] = []
 
     for pattern in patterns:
         path = simplify_regex(str(pattern.pattern))
@@ -265,7 +266,7 @@ def get_api_endpoints(
             path = root + path
 
         if isinstance(pattern, URLPattern):
-            path = re.sub(r"<[^>:]*:?(?P<parameter>\w+)>", r"{\g<parameter>}", path)
+            path = re.sub(path_parameter_pattern, r"{\g<parameter>}", path)
             callback: AsView = pattern.callback
 
             if should_include_endpoint(path, callback):
@@ -297,14 +298,14 @@ def should_include_endpoint(path: UrlPath, callback: AsView) -> bool:  # pragma:
         return False
 
     # Ignore urls ending with file types
-    match = re.match(r"^[^.]*[.]\{[^}]+}/?$", path)
+    match = re.match(path_format_parameter, path)
     if match is not None:
         return False
 
     return True
 
 
-def get_methods(callback: AsView) -> List[HTTPMethod]:
+def get_methods(callback: AsView) -> list[HTTPMethod]:
     if hasattr(callback.cls, "pipelines"):
         return list(callback.cls.pipelines)
 
@@ -327,7 +328,7 @@ def create_view(callback: AsView, method: HTTPMethod, request: Optional[Request]
     return view
 
 
-def endpoint_ordering(endpoint: Tuple[UrlPath, HTTPMethod, CompatibleView]) -> Tuple[str, int]:
+def endpoint_ordering(endpoint: tuple[UrlPath, HTTPMethod, CompatibleView]) -> tuple[UrlPath, int]:
     method_priority = {"GET": 0, "POST": 1, "PUT": 2, "PATCH": 3, "DELETE": 4}.get(endpoint[1], 5)
     return endpoint[0], method_priority
 
@@ -340,7 +341,7 @@ def get_local_path(path: UrlPath, root_url: UrlPath) -> UrlPath:
     return path
 
 
-def get_path_parameters(path: str) -> Generator[str, Any, None]:
+def get_path_parameters(path: UrlPath) -> Generator[str, Any, None]:
     for match in url_variables_pattern.finditer(path):
         yield match.groups()[0]
 
@@ -356,7 +357,7 @@ def warn_method_override(
     path: UrlPath,
     method: HTTPMethod,
     operation_id: str,
-    operation_ids: Dict[str, PathAndMethod],
+    operation_ids: dict[str, PathAndMethod],
 ) -> None:
     warnings.warn(  # pragma: no cover
         cleandoc(
@@ -375,3 +376,41 @@ def warn_method_override(
 class EmptySerializer(serializers.Serializer):
     # Used for schema 204 responses
     pass
+
+
+def deprecate(
+    __view: Optional[type[CompatibleView]] = None,
+    *,
+    methods: Optional[list[HTTPMethod]] = None,
+) -> type[CompatibleView]:
+    """Deprecate a view in the OpenAPI schema while retaining the original.
+
+    :param methods: HTTP methods to deprecate. Deprecate all if not given.
+    """
+
+    def view(_view: type[CompatibleView], _methods: Optional[list[HTTPMethod]] = None) -> type[CompatibleView]:
+        # Mock the "get_serializer_class" method to change the calculated "operation_id"
+        def new_get_serializer_class(old_method):
+            def inner(self, output: bool = False):
+                serializer = old_method.__get__(self, new_view)(output)
+                new_serializer = type(f"Deprecated{serializer.__name__}", (serializer,), {})
+                new_serializer.__doc__ = serializer.__doc__ or ""
+                return new_serializer
+
+            return inner
+
+        new_view: type[CompatibleView] = type(f"Deprecated{_view.__name__}", (_view,), {})  # type: ignore
+        new_view.__doc__ = _view.__doc__ or ""
+        new_view.get_serializer_class = new_get_serializer_class(new_view.get_serializer_class)
+
+        if _methods is None:
+            _methods = list(get_methods(new_view.as_view()))
+
+        new_view.schema = copy.deepcopy(new_view.schema)
+        new_view.schema.deprecated = _methods
+        return new_view  # type: ignore
+
+    if callable(__view):
+        return view(__view, methods)  # type: ignore
+
+    return partial(view, _methods=methods)  # type: ignore

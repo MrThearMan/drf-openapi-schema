@@ -1,7 +1,6 @@
 import re
 from contextlib import suppress
 from inspect import cleandoc
-from typing import Dict, List, Optional, Set, Type, Union
 
 from django.utils.encoding import smart_str
 from rest_framework.permissions import AllowAny
@@ -31,6 +30,7 @@ from .typing import (
     HTTPMethod,
     MediaType,
     OperationBaseName,
+    Optional,
     QueryParameter,
     ResponseKind,
     SchemaCallbackData,
@@ -40,6 +40,7 @@ from .typing import (
     SerializerType,
     StatusCode,
     TagName,
+    Union,
     UrlPath,
 )
 from .utils import (
@@ -53,27 +54,27 @@ from .utils import (
 )
 
 
-class PipelineSchema:
+class OpenAPISchema:
     def __init__(
         self,
         *,
-        responses: Optional[Dict[HTTPMethod, Dict[StatusCode, Union[ResponseKind, List[ResponseKind]]]]] = None,
-        callbacks: Optional[Dict[EventName, Dict[UrlPath, Dict[HTTPMethod, SchemaCallbackData]]]] = None,
-        links: Optional[Dict[HTTPMethod, Dict[StatusCode, Dict[EventName, APILinks]]]] = None,
-        query_parameters: Optional[Dict[HTTPMethod, List[QueryParameter]]] = None,
-        header_parameters: Optional[Dict[HTTPMethod, List[HeaderParameter]]] = None,
-        cookie_parameters: Optional[Dict[HTTPMethod, List[CookieParameter]]] = None,
-        deprecated: Optional[List[HTTPMethod]] = None,
-        security: Optional[Dict[HTTPMethod, Dict[SchemeName, List[ScopeName]]]] = None,
-        external_docs: Optional[Dict[HTTPMethod, APIExternalDocumentation]] = None,
-        public: Optional[Dict[HTTPMethod, bool]] = None,
-        tags: Optional[List[TagName]] = None,
+        responses: Optional[dict[HTTPMethod, dict[StatusCode, Union[ResponseKind, list[ResponseKind]]]]] = None,
+        callbacks: Optional[dict[EventName, dict[UrlPath, dict[HTTPMethod, SchemaCallbackData]]]] = None,
+        links: Optional[dict[HTTPMethod, dict[StatusCode, dict[EventName, APILinks]]]] = None,
+        query_parameters: Optional[dict[HTTPMethod, list[QueryParameter]]] = None,
+        header_parameters: Optional[dict[HTTPMethod, list[HeaderParameter]]] = None,
+        cookie_parameters: Optional[dict[HTTPMethod, list[CookieParameter]]] = None,
+        deprecated: Optional[list[HTTPMethod]] = None,
+        security: Optional[dict[HTTPMethod, dict[SchemeName, list[ScopeName]]]] = None,
+        external_docs: Optional[dict[HTTPMethod, APIExternalDocumentation]] = None,
+        public: Optional[dict[HTTPMethod, bool]] = None,
+        tags: Optional[list[TagName]] = None,
         operation_id_base: Optional[OperationBaseName] = None,
     ):
-        """Create an OpenAPI 3.0.2 schema for a PipelineView.
+        """Create an OpenAPI 3.0.2 schema for a Django Rest Framework view.
 
         :param responses: Additional responses given in the endpoints.
-        :param callbacks: Asynchronous, out-of-band requests that are made during the pipeline.
+        :param callbacks: Asynchronous, out-of-band requests that are made on the endpoint.
                           https://swagger.io/docs/specification/callbacks/
         :param links: Describes how the endpoints relate to other endpoints.
                       https://swagger.io/docs/specification/links/
@@ -103,7 +104,7 @@ class PipelineSchema:
 
         self.__view: Optional[CompatibleView] = None
 
-    def __get__(self, instance: Optional[CompatibleView], owner: Type[CompatibleView]) -> "PipelineSchema":
+    def __get__(self, instance: Optional[CompatibleView], owner: type[CompatibleView]) -> "OpenAPISchema":
         self.__view = instance
         return self
 
@@ -150,7 +151,7 @@ class PipelineSchema:
 
         return action + operation_id_base + path_part
 
-    def get_tags(self, path: UrlPath) -> List[TagName]:
+    def get_tags(self, path: UrlPath) -> list[TagName]:
         if self.tags:
             return self.tags
 
@@ -217,8 +218,8 @@ class PipelineSchema:
 
         return getattr(self.view, "output_serializer_class", None)  # pragma: no cover
 
-    def get_components(self, *args, **kwargs) -> Dict[ComponentName, APISchema]:
-        components: Dict[ComponentName, APISchema] = {}
+    def get_components(self, *args, **kwargs) -> dict[ComponentName, APISchema]:
+        components: dict[ComponentName, APISchema] = {}
 
         request_serializer_class = self.get_request_serializer_class()
         response_serializer_class = self.get_response_serializer_class()
@@ -237,7 +238,7 @@ class PipelineSchema:
 
         return components
 
-    def add_component(self, components: Dict[ComponentName, APISchema], item: Optional[ResponseKind]) -> None:
+    def add_component(self, components: dict[ComponentName, APISchema], item: Optional[ResponseKind]) -> None:
         if not is_serializer_class(item):
             return
 
@@ -246,7 +247,7 @@ class PipelineSchema:
         component_name = self.get_component_name(serializer)
         components.setdefault(component_name, content)
 
-    def get_callbacks(self) -> Dict[EventName, Dict[UrlPath, APIPathItem]]:
+    def get_callbacks(self) -> dict[EventName, dict[UrlPath, APIPathItem]]:
         if not self.callbacks:
             return {}
 
@@ -288,12 +289,12 @@ class PipelineSchema:
 
         return callback_data
 
-    def get_parameters(self, path: UrlPath, method: HTTPMethod) -> List[APIParameter]:
+    def get_parameters(self, path: UrlPath, method: HTTPMethod) -> list[APIParameter]:
         serializer = self.view.get_serializer()
         if isinstance(serializer, ListSerializer):
             serializer = getattr(serializer, "child", serializer)
 
-        parameters: List[APIParameter] = []
+        parameters: list[APIParameter] = []
         path_parameters = list(get_path_parameters(path))
         query_parameters = self.query_parameters.get(method, [])
         header_parameters = self.header_parameters.get(method, [])
@@ -335,10 +336,10 @@ class PipelineSchema:
 
         return parameters
 
-    def get_parsers(self) -> List[MediaType]:
+    def get_parsers(self) -> list[MediaType]:
         return [parser_class.media_type for parser_class in self.view.parser_classes]  # type: ignore
 
-    def get_renderers(self) -> List[MediaType]:
+    def get_renderers(self) -> list[MediaType]:
         return [  # type: ignore
             renderer.media_type
             for renderer in self.view.renderer_classes
@@ -362,7 +363,7 @@ class PipelineSchema:
 
         input_serializer = self.view.get_serializer()
 
-        params: Set[str] = {param["name"] for param in self.get_parameters(path, method)}
+        params: set[str] = {param["name"] for param in self.get_parameters(path, method)}
 
         if params:
             is_list_serializer = isinstance(input_serializer, ListSerializer)
