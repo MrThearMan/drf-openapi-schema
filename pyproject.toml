@@ -1,0 +1,191 @@
+[tool.poetry]
+name = "drf-openapi-schema"
+version = "0.0.1"
+description = "Django Rest Framework OpenAPI Schema generation."
+authors = [
+    "Matti Lamppu <lamppu.matti.akseli@gmail.com>",
+]
+packages = [
+    { include = "openapi_schema" },
+]
+license = "MIT"
+readme = "README.md"
+homepage = "https://mrthearman.github.io/drf-openapi-schema"
+repository = "https://github.com/MrThearMan/drf-openapi-schema"
+keywords = [
+    "drf",
+    "django",
+    "rest_framework",
+    "rest",
+    "framework",
+    "openapi",
+    "schema",
+    "generator",
+]
+classifiers = [
+    "Environment :: Web Environment",
+    "Operating System :: OS Independent",
+    "Intended Audience :: Developers",
+    "Natural Language :: English",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+]
+include = [
+    "README.md",
+    "LICENSE",
+]
+exclude = [
+    "tests",
+]
+
+[tool.poetry.urls]
+"Bug Tracker" = "https://github.com/MrThearMan/drf-openapi-schema/issues"
+
+[tool.poetry.dependencies]
+python = ">=3.9,<4"
+Django = ">=3.2"
+djangorestframework = ">=3.12.0"
+drf-serializer-inference = ">=0.0.1"
+PyYAML = ">=6.0"
+typing-extensions = {version = ">=4.4.0", python = "<3.11"}
+pydantic = {version = ">=1.6.2", optional = true}
+uritemplate = {version = ">=4.1.1", optional = true}
+
+[tool.poetry.group.test.dependencies]
+pytest = "7.3.0"
+coverage = "6.5.0"
+pytest-django = "4.5.2"
+pre-commit = "3.2.2"
+tox = "4.4.12"
+tox-gh-actions = "3.1.0"
+coveralls = "3.3.1"
+drf-pipeline-views = "0.8.5"
+
+[tool.poetry.group.docs.dependencies]
+mkdocs = "1.4.2"
+pymdown-extensions = "9.11"
+mkdocs-mermaid2-plugin = "0.6.0"
+
+[tool.poetry.group.lint.dependencies]
+mypy = "1.2.0"
+django-stubs = "1.16.0"
+djangorestframework-stubs = "1.10.0"
+
+[tool.poetry.extras]
+pydantic = ["pydantic"]
+uritemplate = ["uritemplate"]
+
+[tool.black]
+line-length = 120
+
+[tool.ruff]
+fix = true
+line-length = 120
+extend-exclude = [
+    "tests/*",
+]
+typing-modules = [
+    "openapi_schema.typing",
+]
+select = [
+    "F",  # pyflakes
+    "E",  # pycodestyle errors
+    "I",  # isort
+    "S",  # flake8-bandit
+    "C",  # flake8-comprehensions
+    "B",  # flake8-bugbear
+    "T",  # flake8-print
+    "W",  # pycodestyle warnings
+]
+ignore = [
+]
+
+[tool.ruff.per-file-ignores]
+"openapi_schema/schema.py" = ["C901"]
+"openapi_schema/utils.py" = ["C901"]
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = "True"
+warn_unused_configs = "True"
+plugins = [
+    "mypy_django_plugin.main",
+    "mypy_drf_plugin.main",
+]
+
+[tool.django-stubs]
+django_settings_module = "tests.django.settings"
+
+[tool.coverage.run]
+relative_files = true
+
+[tool.coverage.report]
+omit = [
+    "tests/*",
+    "docs/*",
+    ".venv/*",
+    ".tox/*",
+]
+exclude_lines = [
+    "if TYPE_CHECKING:",
+    "except ImportError:",
+    "pragma: no cover",
+]
+
+[tool.pytest.ini_options]
+addopts = "-vv -s --log-cli-level=INFO"
+
+[tool.tox]
+legacy_tox_ini = """
+[tox]
+envlist = py{39, 310, 311}-drf{312, 313, 314}
+isolated_build = true
+
+[gh-actions]
+python =
+    3.9: py39
+    3.10: py310
+    3.11: py311
+
+[testenv]
+allowlist_externals =
+    poetry
+setenv =
+    PYTHONPATH = {toxinidir}
+deps =
+    py39: Django >=3.2,<4.0
+
+    py310-drf312: Django >=3.2,<4.0
+    py310-drf313: Django >=4.0,<4.1
+    py310-drf314: Django >=4.1,<4.2
+
+    py311-drf312: Django >=3.2,<4.0
+    py311-drf313: Django >=4.0,<4.1
+    py311-drf314: Django >=4.2,<4.3
+
+    drf312: djangorestframework >=3.12.0,<3.13.0
+    drf313: djangorestframework >=3.13.0,<3.14.0
+    drf314: djangorestframework >=3.14.0,<3.15.0
+
+    drf-serializer-inference
+
+    pytest
+    coverage
+    pytest-django
+    typing-extensions
+    pydantic
+    pyyaml
+    uritemplate
+    drf-pipeline-views
+commands =
+    coverage run -m pytest -vv -s --log-cli-level=INFO
+"""
+
+[build-system]
+requires = ["poetry-core>=1.5.0"]
+build-backend = "poetry.core.masonry.api"
