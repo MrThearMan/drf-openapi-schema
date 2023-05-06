@@ -7,12 +7,12 @@ from rest_framework.permissions import AllowAny
 from rest_framework.renderers import BrowsableAPIRenderer
 from rest_framework.serializers import ListSerializer, Serializer
 from serializer_inference import (
-    MockSerializer,
     serializer_from_callable,
     snake_case_to_camel_case,
     snake_case_to_pascal_case,
 )
 
+from .serializers import EmptySerializer, ExampleSerializer
 from .typing import (
     APIExternalDocumentation,
     APILinks,
@@ -44,7 +44,6 @@ from .typing import (
     UrlPath,
 )
 from .utils import (
-    EmptySerializer,
     convert_to_schema,
     get_path_parameters,
     is_serializer_class,
@@ -347,7 +346,7 @@ class OpenAPISchema:
         ]
 
     def get_reference(self, serializer: Serializer) -> APISchema:
-        if isinstance(serializer, MockSerializer):
+        if isinstance(serializer, ExampleSerializer):
             if serializer.fields:
                 return map_serializer(serializer)
             return convert_to_schema(serializer._example)
@@ -370,7 +369,7 @@ class OpenAPISchema:
             child_serializer = getattr(input_serializer, "child", input_serializer)
 
             fields = {key: value for key, value in child_serializer.fields.items() if key not in params}
-            new_serializer_class = type(child_serializer.__class__.__name__, (MockSerializer,), fields)
+            new_serializer_class = type(child_serializer.__class__.__name__, (ExampleSerializer,), fields)
             if is_list_serializer:
                 new_serializer_class.many = True  # pragma: no cover
 

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "drf-openapi-schema"
-version = "0.0.2"
+version = "0.0.3"
 description = "Django Rest Framework OpenAPI Schema generation."
 authors = [
     "Matti Lamppu <lamppu.matti.akseli@gmail.com>",

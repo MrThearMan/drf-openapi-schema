@@ -8,7 +8,7 @@ from inspect import cleandoc
 from django.contrib.admindocs.views import simplify_regex
 from django.core import validators
 from django.urls import URLPattern, URLResolver
-from rest_framework import fields, serializers
+from rest_framework import fields
 from rest_framework.fields import _UnvalidatedField, empty
 from rest_framework.request import Request, clone_request
 from rest_framework.serializers import ListSerializer, Serializer
@@ -371,11 +371,6 @@ def warn_method_override(
         ),
         stacklevel=2,
     )
-
-
-class EmptySerializer(serializers.Serializer):
-    # Used for schema 204 responses
-    pass
 
 
 def deprecate(

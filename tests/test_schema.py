@@ -5,11 +5,10 @@ from rest_framework.fields import CharField, IntegerField
 from rest_framework.reverse import reverse
 from rest_framework.serializers import Serializer
 from rest_framework.test import APIClient
-from serializer_inference.serializers import MockSerializer
 
 from openapi_schema.generator import OpenAPISchemaGenerator
 from openapi_schema.schema import OpenAPISchema
-from openapi_schema.utils import EmptySerializer
+from openapi_schema.serializers import EmptySerializer, ExampleSerializer
 from tests.django.urls import (
     ExamplePathView,
     ExampleView,
@@ -644,17 +643,16 @@ def test_schema__get_responses__mock_serializer(drf_request):
         pipelines = {
             "POST": [
                 InputSerializer,
-                MockSerializer.with_example(
-                    description="This is the response",
-                    response={"foo": {"bar": ["baz"]}},
-                ),
             ]
         }
 
         schema = OpenAPISchema(
             responses={
                 "POST": {
-                    200: ...,
+                    200: ExampleSerializer.with_example(
+                        description="This is the response",
+                        response={"foo": {"bar": ["baz"]}},
+                    ),
                     400: "Unavailable",
                     404: CustomSerializer,
                 },
