@@ -1039,11 +1039,11 @@ class APITag(TypedDict, total=False):
     externalDocs: APIExternalDocumentation
 
 
-APIKeySecurityType = Literal["apiKey"]
-HTTPSecurityType = Literal["http"]
-MutualTLSSecurityType = Literal["mutualTLS"]
-OAuth2SecurityType = Literal["oauth2"]
-OpenIDConnectSecurityType = Literal["openIdConnect"]
+APIKeySecurityType = Literal["apiKey"]  # noqa: F821
+HTTPSecurityType = Literal["http"]  # noqa: F821
+MutualTLSSecurityType = Literal["mutualTLS"]  # noqa: F821
+OAuth2SecurityType = Literal["oauth2"]  # noqa: F821
+OpenIDConnectSecurityType = Literal["openIdConnect"]  # noqa: F821
 SecuritySchemeType = Union[
     APIKeySecurityType,
     HTTPSecurityType,
