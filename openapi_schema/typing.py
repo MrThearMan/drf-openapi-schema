@@ -29,11 +29,11 @@ except ImportError:
 
 from django.http.response import HttpResponseBase
 from rest_framework.authentication import BaseAuthentication
-from rest_framework.parsers import BaseParser
+from rest_framework.parsers import BaseParser  # noqa: TCH002
 from rest_framework.permissions import BasePermission
-from rest_framework.renderers import BaseRenderer
-from rest_framework.request import Request
-from rest_framework.response import Response
+from rest_framework.renderers import BaseRenderer  # noqa: TCH002
+from rest_framework.request import Request  # noqa: TCH002
+from rest_framework.response import Response  # noqa: TCH002
 from rest_framework.serializers import Serializer
 
 __all__ = [
@@ -134,7 +134,7 @@ SerializerType: TypeAlias = type[Serializer]
 SerializerOrSerializerType = Union[Serializer, SerializerType]
 
 HTTPMethod: TypeAlias = Literal["GET", "POST", "PUT", "PATCH", "DELETE"]
-http_method: TypeAlias = Literal["get", "post", "put", "patch", "delete", "trace", "options"]
+http_method: TypeAlias = Literal["get", "post", "put", "patch", "delete", "trace", "options"]  # noqa: PYI042
 AuthOrPerm: TypeAlias = Union[type[BasePermission], type[BaseAuthentication]]
 SecurityRules: TypeAlias = dict[Union[tuple[AuthOrPerm, ...], AuthOrPerm], dict[str, list[str]]]
 
@@ -176,11 +176,11 @@ class CompatibleView(Protocol):
 
     schema: CompatibleSchema
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Init"""
 
     @classmethod
-    def as_view(cls, **kwargs):
+    def as_view(cls, **kwargs: Any) -> AsView:
         """As View"""
 
     def get_serializer(self, *args: Any, **kwargs: Any) -> Serializer:
@@ -203,7 +203,7 @@ class AsView(Protocol[_View]):
 
 
 class GenericView(Protocol):
-    def __call__(self: CompatibleView, request: "Request", *args: Any, **kwargs: Any) -> Response:
+    def __call__(self: CompatibleView, request: Request, *args: Any, **kwargs: Any) -> Response:
         """Generic view"""
 
 
@@ -335,107 +335,7 @@ class APIExternalDocumentation(TypedDict, total=False):
     description: str
 
 
-MediaType = Literal[
-    "*/*",
-    "application/*",
-    "application/coreapi+json",
-    "application/javascript",
-    "application/json",
-    "application/manifest+json",
-    "application/msword",
-    "application/octet-stream",
-    "application/oda",
-    "application/pdf",
-    "application/pkcs7-mime",
-    "application/postscript",
-    "application/vnd.apple.mpegurl",
-    "application/vnd.ms-excel",
-    "application/vnd.ms-powerpoint",
-    "application/vnd.oai.openapi",
-    "application/vnd.oai.openapi+json",
-    "application/wasm",
-    "application/x-bcpio",
-    "application/x-cpio",
-    "application/x-csh",
-    "application/x-dvi",
-    "application/x-gtar",
-    "application/x-hdf",
-    "application/x-hdf5",
-    "application/x-latex",
-    "application/x-mif",
-    "application/x-netcdf",
-    "application/x-pkcs12",
-    "application/x-pn-realaudio",
-    "application/x-python-code",
-    "application/x-sh",
-    "application/x-shar",
-    "application/x-shockwave-flash",
-    "application/x-sv4cpio",
-    "application/x-sv4crc",
-    "application/x-tar",
-    "application/x-tcl",
-    "application/x-tex",
-    "application/x-texinfo",
-    "application/x-troff",
-    "application/x-troff-man",
-    "application/x-troff-me",
-    "application/x-troff-ms",
-    "application/x-ustar",
-    "application/x-wais-source",
-    "application/xml",
-    "application/zip",
-    "audio/*",
-    "audio/3gpp",
-    "audio/3gpp2",
-    "audio/aac",
-    "audio/basic",
-    "audio/mpeg",
-    "audio/opus",
-    "audio/x-aiff",
-    "audio/x-pn-realaudio",
-    "audio/x-wav",
-    "image/*",
-    "image/gif",
-    "image/heic",
-    "image/heif",
-    "image/ief",
-    "image/jpeg",
-    "image/png",
-    "image/svg+xml",
-    "image/tiff",
-    "image/vnd.microsoft.icon",
-    "image/x-cmu-raster",
-    "image/x-ms-bmp",
-    "image/x-portable-anymap",
-    "image/x-portable-bitmap",
-    "image/x-portable-graymap",
-    "image/x-portable-pixmap",
-    "image/x-rgb",
-    "image/x-xbitmap",
-    "image/x-xpixmap",
-    "image/x-xwindowdump",
-    "message/*",
-    "message/rfc822",
-    "text/*",
-    "text/css",
-    "text/csv",
-    "text/html",
-    "text/plain",
-    "text/richtext",
-    "text/tab-separated-values",
-    "text/x-python",
-    "text/x-setext",
-    "text/x-sgml",
-    "text/x-vcard",
-    "text/xml",
-    "video/*",
-    "video/mp4",
-    "video/mpeg",
-    "video/quicktime",
-    "video/webm",
-    "video/x-msvideo",
-    "video/x-sgi-movie",
-]
+MediaType: TypeAlias = str
 APIStyle = Literal["form", "simple", "matrix", "label", "spaceDelimited", "pipeDelimited", "deepObject"]
 _APIParameter = TypedDict("_APIParameter", {"in": Literal["path", "query", "header", "cookie"]})
 
@@ -1039,11 +939,11 @@ class APITag(TypedDict, total=False):
     externalDocs: APIExternalDocumentation
 
 
-APIKeySecurityType = Literal["apiKey"]  # noqa: F821
-HTTPSecurityType = Literal["http"]  # noqa: F821
-MutualTLSSecurityType = Literal["mutualTLS"]  # noqa: F821
-OAuth2SecurityType = Literal["oauth2"]  # noqa: F821
-OpenIDConnectSecurityType = Literal["openIdConnect"]  # noqa: F821
+APIKeySecurityType = Literal["apiKey"]
+HTTPSecurityType = Literal["http"]
+MutualTLSSecurityType = Literal["mutualTLS"]
+OAuth2SecurityType = Literal["oauth2"]
+OpenIDConnectSecurityType = Literal["openIdConnect"]
 SecuritySchemeType = Union[
     APIKeySecurityType,
     HTTPSecurityType,
@@ -1055,7 +955,7 @@ _APIKeySecurityScheme = TypedDict("_APIKeySecurityScheme", {"in": Literal["query
 
 
 class APIKeySecurityScheme(_APIKeySecurityScheme, total=False):
-    type: Required[APIKeySecurityType]
+    type: Required[APIKeySecurityType]  # noqa: A003
     description: str
     name: Required[str]
 
@@ -1139,16 +1039,17 @@ APISecurityScheme = Union[
 ]
 APISecurityRequirement = dict[SecuritySchemeType, list[Annotated[str, "scope_name"]]]
 APIType = Literal["string", "integer", "number", "boolean", "object", "array"]
+FormatType = Literal["binary", "int64", "decimal", "date", "date-time", "email", "uri", "uuid", "ipv4", "ipv6"]
 
 
 class APISchema(_APIRefNotRequired, total=False):
-    type: APIType
+    type: APIType  # noqa: A003
     items: APISchema
     properties: dict[Annotated[str, "property_name"], APISchema]
     required: list[Annotated[str, "property_name"]]
     default: str
     description: str
-    format: Literal["binary", "int64", "decimal", "date", "date-time", "email", "uri", "uuid", "ipv4", "ipv6"]
+    format: FormatType  # noqa: A003
     enum: list[str]
     readOnly: bool
     writeOnly: bool

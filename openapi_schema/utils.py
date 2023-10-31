@@ -20,6 +20,7 @@ from .typing import (
     APISchema,
     APIType,
     AsView,
+    Callable,
     CompatibleView,
     ComponentName,
     Generator,
@@ -62,9 +63,9 @@ def convert_to_schema(schema: Union[list[Any], dict[str, Any], Any]) -> APISchem
     )
 
 
-def map_field(field: fields.Field) -> APISchema:  # pragma: no cover
+def map_field(field: fields.Field) -> APISchema:  # noqa: PLR0911, PLR0912, PLR0915 pragma: no cover
     if isinstance(field, ListSerializer):
-        return APISchema(type="array", items=map_serializer(field.child))
+        return APISchema(type="array", items=map_serializer(field.child))  # type: ignore[arg-type]
 
     if isinstance(field, Serializer):
         return map_serializer(field)
@@ -114,7 +115,7 @@ def map_field(field: fields.Field) -> APISchema:  # pragma: no cover
     if isinstance(field, fields.IPAddressField):
         content = APISchema(type="string")
         if field.protocol != "both":
-            content["format"] = field.protocol  # type: ignore
+            content["format"] = field.protocol  # type: ignore[typeddict-item]
         return content
 
     if isinstance(field, fields.DecimalField):
@@ -129,9 +130,9 @@ def map_field(field: fields.Field) -> APISchema:  # pragma: no cover
             content["maximum"] = int(field.max_whole_digits * "9") + 1
             content["minimum"] = -content["maximum"]
         if field.max_value:
-            content["maximum"] = field.max_value
+            content["maximum"] = field.max_value  # type: ignore[typeddict-item]
         if field.min_value:
-            content["minimum"] = field.min_value
+            content["minimum"] = field.min_value  # type: ignore[typeddict-item]
 
         return content
 
@@ -147,11 +148,11 @@ def map_field(field: fields.Field) -> APISchema:  # pragma: no cover
         content = APISchema(type="integer")
         if field.max_value:
             content["maximum"] = field.max_value
-            if field.max_value > 2_147_483_647:
+            if field.max_value > 2_147_483_647:  # noqa: PLR2004
                 content["format"] = "int64"
         if field.min_value:
             content["minimum"] = field.min_value
-            if field.min_value > 2_147_483_647:
+            if field.min_value > 2_147_483_647:  # noqa: PLR2004
                 content["format"] = "int64"
         return content
 
@@ -178,7 +179,7 @@ def map_serializer(serializer: SerializerOrSerializerType) -> APISchema:
     result = APISchema(type="object", properties={})
 
     if is_serializer_class(serializer):
-        serializer = serializer(many=getattr(serializer, "many", False))
+        serializer = serializer(many=getattr(serializer, "many", False))  # type: ignore[operator]
 
     if isinstance(serializer, ListSerializer):
         return APISchema(type="array", items=map_serializer(getattr(serializer, "child", serializer)))
@@ -205,10 +206,10 @@ def map_serializer(serializer: SerializerOrSerializerType) -> APISchema:
 
         map_field_validators(field, schema)
 
-        result["properties"][field.field_name] = schema
+        result["properties"][field.field_name] = schema  # type: ignore[index]
 
     if required:
-        result["required"] = required
+        result["required"] = required  # type: ignore[typeddict-item]
 
     return result
 
@@ -222,15 +223,15 @@ def map_field_validators(field: fields.Field, schema: APISchema) -> None:  # pra
             schema["format"] = "uri"
 
         if isinstance(validator, validators.RegexValidator):
-            schema["pattern"] = validator.regex.pattern.replace("\\Z", "\\z")
+            schema["pattern"] = validator.regex.pattern.replace("\\Z", "\\z")  # type: ignore[union-attr]
 
         elif isinstance(validator, validators.MaxLengthValidator):
             attr_name = "maxItems" if isinstance(field, fields.ListField) else "maxLength"
-            schema[attr_name] = validator.limit_value
+            schema[attr_name] = validator.limit_value  # type: ignore[literal-required]
 
         elif isinstance(validator, validators.MinLengthValidator):
             attr_name = "minItems" if isinstance(field, fields.ListField) else "minLength"
-            schema[attr_name] = validator.limit_value
+            schema[attr_name] = validator.limit_value  # type: ignore[literal-required]
 
         elif isinstance(validator, validators.MaxValueValidator):
             schema["maximum"] = validator.limit_value
@@ -267,7 +268,7 @@ def get_api_endpoints(
 
         if isinstance(pattern, URLPattern):
             path = re.sub(path_parameter_pattern, r"{\g<parameter>}", path)
-            callback: AsView = pattern.callback
+            callback: AsView = pattern.callback  # type: ignore[assignment]
 
             if should_include_endpoint(path, callback):
                 for method in get_methods(callback):
@@ -316,14 +317,14 @@ def get_methods(callback: AsView) -> list[HTTPMethod]:
     else:
         methods = callback.cls().allowed_methods
 
-    return [method for method in methods if method not in ("OPTIONS", "HEAD")]  # type: ignore
+    return [method for method in methods if method not in ("OPTIONS", "HEAD")]
 
 
 def create_view(callback: AsView, method: HTTPMethod, request: Optional[Request]) -> CompatibleView:
     view = callback.cls(**callback.initkwargs)
-    view.args = ()
-    view.kwargs = {}
-    view.format_kwarg = None
+    view.args = ()  # type: ignore[attr-defined]
+    view.kwargs = {}  # type: ignore[attr-defined]
+    view.format_kwarg = None  # type: ignore[attr-defined]
     view.request = clone_request(request, method) if request is not None else None
     return view
 
@@ -337,8 +338,7 @@ def get_local_path(path: UrlPath, root_url: UrlPath) -> UrlPath:
     path = path.removeprefix("/")
     root_url = root_url.removeprefix("/")
     path = path.removeprefix(root_url)
-    path = path.removeprefix("/")
-    return path
+    return path.removeprefix("/")
 
 
 def get_path_parameters(path: UrlPath) -> Generator[str, Any, None]:
@@ -378,34 +378,37 @@ def deprecate(
     *,
     methods: Optional[list[HTTPMethod]] = None,
 ) -> type[CompatibleView]:
-    """Deprecate a view in the OpenAPI schema while retaining the original.
+    """
+    Deprecate a view in the OpenAPI schema while retaining the original.
 
     :param methods: HTTP methods to deprecate. Deprecate all if not given.
     """
 
     def view(_view: type[CompatibleView], _methods: Optional[list[HTTPMethod]] = None) -> type[CompatibleView]:
         # Mock the "get_serializer_class" method to change the calculated "operation_id"
-        def new_get_serializer_class(old_method):
-            def inner(self, output: bool = False):
-                serializer = old_method.__get__(self, new_view)(output)
+        def new_get_serializer_class(old_method: type[Serializer]) -> Callable[..., type[Serializer]]:
+            def inner(self, output: bool = False) -> type[Serializer]:  # noqa: ANN001, FBT002
+                serializer: type[Serializer] = old_method.__get__(self, new_view)(output)  # type: ignore[attr-defined]
                 new_serializer = type(f"Deprecated{serializer.__name__}", (serializer,), {})
                 new_serializer.__doc__ = serializer.__doc__ or ""
-                return new_serializer
+                return new_serializer  # type: ignore[return-value]
 
             return inner
 
-        new_view: type[CompatibleView] = type(f"Deprecated{_view.__name__}", (_view,), {})  # type: ignore
+        new_view: type[CompatibleView] = type(f"Deprecated{_view.__name__}", (_view,), {})  # type: ignore[assigment]
         new_view.__doc__ = _view.__doc__ or ""
-        new_view.get_serializer_class = new_get_serializer_class(new_view.get_serializer_class)
+        new_view.get_serializer_class = new_get_serializer_class(  # type: ignore[method-assign]
+            new_view.get_serializer_class,  # type: ignore[arg-type]
+        )
 
         if _methods is None:
             _methods = list(get_methods(new_view.as_view()))
 
         new_view.schema = copy.deepcopy(new_view.schema)
-        new_view.schema.deprecated = _methods
-        return new_view  # type: ignore
+        new_view.schema.deprecated = _methods  # type: ignore[attr-defined]
+        return new_view
 
     if callable(__view):
-        return view(__view, methods)  # type: ignore
+        return view(__view, methods)  # type: ignore[arg-type]
 
-    return partial(view, _methods=methods)  # type: ignore
+    return partial(view, _methods=methods)  # type: ignore[return-value]

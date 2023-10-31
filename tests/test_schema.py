@@ -9,7 +9,7 @@ from rest_framework.test import APIClient
 from openapi_schema.generator import OpenAPISchemaGenerator
 from openapi_schema.schema import OpenAPISchema
 from openapi_schema.serializers import EmptySerializer, ExampleSerializer
-from tests.django.urls import (
+from tests.project.urls import (
     ExamplePathView,
     ExampleView,
     InputSerializer,

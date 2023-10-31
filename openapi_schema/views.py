@@ -9,6 +9,7 @@ from rest_framework.views import APIView
 
 from .generator import OpenAPISchemaGenerator
 from .typing import (
+    Any,
     APIContact,
     APILicense,
     APISecurityScheme,
@@ -32,12 +33,12 @@ class OpenAPISchemaView(APIView):
     renderer_classes = [OpenAPIRenderer, JSONOpenAPIRenderer]
     public: bool = True
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any) -> None:
         super().__init__(**kwargs)
         if BrowsableAPIRenderer in api_settings.DEFAULT_RENDERER_CLASSES:
             self.renderer_classes += [BrowsableAPIRenderer]
 
-    def get(self, request: Request, *args, **kwargs) -> Response:
+    def get(self, request: Request, *args: Any, **kwargs: Any) -> Response:
         schema = self.schema_generator.get_schema(request, self.public)
         return Response(schema)
 
@@ -50,7 +51,7 @@ class OpenAPISchemaView(APIView):
         return super().handle_exception(exc)
 
 
-def get_schema_view(
+def get_schema_view(  # noqa: PLR0913
     *,
     title: Optional[str] = None,
     root_url: Optional[UrlPath] = None,
@@ -60,7 +61,7 @@ def get_schema_view(
     version: Optional[str] = None,
     webhooks: Optional[dict[EventName, SchemaWebhook]] = None,
     contact: Optional[APIContact] = None,
-    license: Optional[APILicense] = None,
+    license: Optional[APILicense] = None,  # noqa: A002
     terms_of_service: UrlPath = "",
     public: Optional[bool] = None,
     security_schemes: Optional[dict[SchemeName, APISecurityScheme]] = None,
@@ -68,7 +69,8 @@ def get_schema_view(
     authentication_classes: Optional[list[type[BaseAuthentication]]] = None,
     permission_classes: Optional[list[type[BasePermission]]] = None,
 ) -> AsView[GenericView]:
-    """Return a schema view.
+    """
+    Return a schema view.
 
     :param title: The name of the API (required).
     :param root_url: The root URL prefix of the API schema. Useful for defining versioned API.
@@ -89,7 +91,6 @@ def get_schema_view(
     :param authentication_classes: Authentication classes for the OpenAPI SchemaView.
     :param permission_classes: Permission classes for the OpenAPI SchemaView.
     """
-
     generator = OpenAPISchemaGenerator(
         title=title,
         root_url=root_url,
@@ -105,7 +106,7 @@ def get_schema_view(
         terms_of_service=terms_of_service,
     )
 
-    return OpenAPISchemaView.as_view(  # type: ignore
+    return OpenAPISchemaView.as_view(
         schema_generator=generator,
         public=public,
         authentication_classes=(

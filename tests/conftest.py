@@ -4,7 +4,7 @@ import pytest
 from django.http import HttpRequest
 from rest_framework.request import Request
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "tests.django.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "tests.project.settings")
 
 
 @pytest.fixture()

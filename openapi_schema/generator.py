@@ -41,7 +41,7 @@ from .utils import (
 
 
 class OpenAPISchemaGenerator:
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         *,
         title: Optional[str] = None,
@@ -52,12 +52,13 @@ class OpenAPISchemaGenerator:
         version: Optional[str] = None,
         webhooks: Optional[dict[EventName, SchemaWebhook]] = None,
         contact: Optional[APIContact] = None,
-        license: Optional[APILicense] = None,
+        license: Optional[APILicense] = None,  # noqa: A002
         security_schemes: Optional[dict[SchemeName, APISecurityScheme]] = None,
         security_rules: Optional[SecurityRules] = None,
         terms_of_service: UrlPath = "",
-    ):
-        """Custom Schema Generator for Django Rest Framework views.
+    ) -> None:
+        """
+        Custom Schema Generator for Django Rest Framework views.
 
         :param title: The name of the API (required).
         :param root_url: The root URL prefix of the API schema. Useful for defining versioned API.
@@ -75,7 +76,6 @@ class OpenAPISchemaGenerator:
                                permission class(es) exist on an endpoint.
         :param terms_of_service: API terms of service link.
         """
-
         if root_url is None:
             root_url = "/"
         else:
@@ -174,7 +174,7 @@ class OpenAPISchemaGenerator:
         if hasattr(view.schema, "security"):
             for classes, rules in self.security_rules.items():
                 if not isinstance(classes, tuple):
-                    classes = (classes,)
+                    classes = (classes,)  # noqa: PLW2901
 
                 if any(cls in view.permission_classes or cls in view.authentication_classes for cls in classes):
                     view.schema.security.setdefault(method, {})
@@ -217,14 +217,14 @@ class OpenAPISchemaGenerator:
         return view.schema.get_components(local_path, method)
 
     def get_webhook(self) -> dict[EventName, APIPathItem]:
-        webhooks: dict[EventName, APIPathItem] = {}  # type: ignore
+        webhooks: dict[EventName, APIPathItem] = {}
 
         for webhook_name, webhook in self.webhooks.items():
             input_serializer = webhook["request_data"](many=getattr(webhook["request_data"], "many", False))
             if isinstance(input_serializer, ListSerializer):
                 input_serializer = getattr(input_serializer, "child", input_serializer)  # pragma: no cover
 
-            webhooks[webhook_name] = {  # type: ignore
+            webhooks[webhook_name] = {
                 webhook["method"]: APIOperation(
                     requestBody={
                         "description": input_serializer.__class__.__doc__ or "",
@@ -235,7 +235,7 @@ class OpenAPISchemaGenerator:
                         },
                     },
                     # TODO: Handle unions
-                    responses={  # type: ignore
+                    responses={
                         str(status_code): {
                             "description": response.__doc__ or "",
                             "content": {"application/json": map_serializer(response)},

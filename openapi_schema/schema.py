@@ -14,6 +14,7 @@ from serializer_inference import (
 
 from .serializers import EmptySerializer, ExampleSerializer
 from .typing import (
+    Any,
     APIExternalDocumentation,
     APILinks,
     APIOperation,
@@ -54,7 +55,7 @@ from .utils import (
 
 
 class OpenAPISchema:
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         *,
         responses: Optional[dict[HTTPMethod, dict[StatusCode, Union[ResponseKind, list[ResponseKind]]]]] = None,
@@ -69,8 +70,9 @@ class OpenAPISchema:
         public: Optional[dict[HTTPMethod, bool]] = None,
         tags: Optional[list[TagName]] = None,
         operation_id_base: Optional[OperationBaseName] = None,
-    ):
-        """Create an OpenAPI 3.0.2 schema for a Django Rest Framework view.
+    ) -> None:
+        """
+        Create an OpenAPI 3.0.2 schema for a Django Rest Framework view.
 
         :param responses: Additional responses given in the endpoints.
         :param callbacks: Asynchronous, out-of-band requests that are made on the endpoint.
@@ -110,10 +112,11 @@ class OpenAPISchema:
     @property
     def view(self) -> CompatibleView:
         if self.__view is None:  # pragma: no cover
-            raise AttributeError(
-                "View has not been set. "
-                "Schema accessed on a view class and not an instance, or not used as a descriptor."
+            msg = (
+                "View has not been set. Schema accessed on a view class "
+                "and not an instance, or not used as a descriptor."
             )
+            raise AttributeError(msg)
         return self.__view
 
     def get_description(self) -> str:
@@ -142,11 +145,12 @@ class OpenAPISchema:
         serializer_class_name = self.get_request_serializer_class().__name__
         operation_id_base = serializer_pattern.sub("", serializer_class_name)
 
-        if operation_id_base == "":
-            raise ValueError(  # pragma: no cover
+        if operation_id_base == "":  # pragma: no cover
+            msg = (
                 f"{serializer_class_name!r} is an invalid class name for schema generation. "
                 f"Serializer's class name should be unique and explicit. e.g., 'ItemSerializer'."
             )
+            raise ValueError(msg)
 
         return action + operation_id_base + path_part
 
@@ -197,11 +201,12 @@ class OpenAPISchema:
         serializer_class_name = serializer.__name__
         component_name = serializer_pattern.sub("", serializer_class_name)
 
-        if component_name == "":
-            raise ValueError(  # pragma: no cover
+        if component_name == "":  # pragma: no cover
+            msg = (
                 f"{serializer_class_name!r} is an invalid class name for schema generation. "
                 f"Serializer's class name should be unique and explicit. e.g., 'ItemSerializer'"
             )
+            raise ValueError(msg)
 
         return component_name
 
@@ -213,11 +218,11 @@ class OpenAPISchema:
 
     def get_response_serializer_class(self) -> Optional[SerializerType]:
         with suppress(TypeError):
-            return self.view.get_serializer_class(output=True)  # type: ignore
+            return self.view.get_serializer_class(output=True)
 
         return getattr(self.view, "output_serializer_class", None)  # pragma: no cover
 
-    def get_components(self, *args, **kwargs) -> dict[ComponentName, APISchema]:
+    def get_components(self, *args: Any, **kwargs: Any) -> dict[ComponentName, APISchema]:
         components: dict[ComponentName, APISchema] = {}
 
         request_serializer_class = self.get_request_serializer_class()
@@ -274,7 +279,7 @@ class OpenAPISchema:
                     output_serializers = {}
                     for status_code, response in data["responses"].items():
                         if not is_serializer_class(response):
-                            response = serializer_from_callable(response)
+                            response = serializer_from_callable(response)  # noqa: PLW2901
 
                         output_serializers[status_code] = {
                             "content": {
@@ -288,7 +293,7 @@ class OpenAPISchema:
 
         return callback_data
 
-    def get_parameters(self, path: UrlPath, method: HTTPMethod) -> list[APIParameter]:
+    def get_parameters(self, path: UrlPath, method: HTTPMethod) -> list[APIParameter]:  # noqa: PLR0912
         serializer = self.view.get_serializer()
         if isinstance(serializer, ListSerializer):
             serializer = getattr(serializer, "child", serializer)
@@ -336,10 +341,10 @@ class OpenAPISchema:
         return parameters
 
     def get_parsers(self) -> list[MediaType]:
-        return [parser_class.media_type for parser_class in self.view.parser_classes]  # type: ignore
+        return [parser_class.media_type for parser_class in self.view.parser_classes]
 
     def get_renderers(self) -> list[MediaType]:
-        return [  # type: ignore
+        return [
             renderer.media_type
             for renderer in self.view.renderer_classes
             if not issubclass(renderer, BrowsableAPIRenderer)
@@ -376,7 +381,7 @@ class OpenAPISchema:
             new_serializer_class.__doc__ = (
                 input_serializer.__class__.__doc__ or child_serializer.__class__.__doc__ or ""
             )
-            input_serializer = self.initialize_serializer(serializer_class=new_serializer_class)  # type: ignore
+            input_serializer = self.initialize_serializer(serializer_class=new_serializer_class)
 
         item_schema = (
             self.get_no_result_schema()
@@ -391,7 +396,7 @@ class OpenAPISchema:
             content={content_type: item_schema for content_type in self.get_parsers()},
         )
 
-    def get_responses(self, method: HTTPMethod) -> APIResponses:
+    def get_responses(self, method: HTTPMethod) -> APIResponses:  # noqa: PLR0912
         data = APIResponses()
 
         responses = self.responses.get(method, {})
@@ -415,20 +420,20 @@ class OpenAPISchema:
                 serializer_class = self.get_response_serializer_class()
                 if serializer_class is None:
                     continue  # pragma: no cover
-                info = serializer_class.__doc__ or ""
+                info = serializer_class.__doc__ or ""  # noqa: PLW2901
 
             elif is_serializer_class(info):
                 serializer_class = info
-                info = serializer_class.__doc__ or ""
+                info = serializer_class.__doc__ or ""  # noqa: PLW2901
 
             if serializer_class is not None:
                 serializer = self.initialize_serializer(serializer_class=serializer_class)
 
-                if status_code // 100 == 2 and isinstance(serializer, ListSerializer):
+                if status_code // 100 == 2 and isinstance(serializer, ListSerializer):  # noqa: PLR2004
                     data.setdefault("204", self.get_no_result_schema())
 
                 if isinstance(serializer, EmptySerializer):
-                    status_code = 204
+                    status_code = 204  # noqa: PLW2901
                     response_schema = self.get_no_result_schema()
                 else:
                     response_schema = {"schema": self.get_reference(serializer)}
@@ -444,12 +449,12 @@ class OpenAPISchema:
 
                     response_schema["schema"]["anyOf"].append(self.get_error_message_schema())
 
-                info = ""
+                info = ""  # noqa: PLW2901
 
             else:
                 response_schema = {"schema": self.get_error_message_schema()}
 
-            data[str(status_code)] = {
+            data[str(status_code)] = {  # type: ignore[literal-required]
                 "content": {content_type: response_schema for content_type in self.get_renderers()},
                 "description": info,
             }
