@@ -955,7 +955,7 @@ _APIKeySecurityScheme = TypedDict("_APIKeySecurityScheme", {"in": Literal["query
 
 
 class APIKeySecurityScheme(_APIKeySecurityScheme, total=False):
-    type: Required[APIKeySecurityType]  # noqa: A003
+    type: Required[APIKeySecurityType]
     description: str
     name: Required[str]
 
@@ -1043,13 +1043,13 @@ FormatType = Literal["binary", "int64", "decimal", "date", "date-time", "email",
 
 
 class APISchema(_APIRefNotRequired, total=False):
-    type: APIType  # noqa: A003
+    type: APIType
     items: APISchema
     properties: dict[Annotated[str, "property_name"], APISchema]
     required: list[Annotated[str, "property_name"]]
     default: str
     description: str
-    format: FormatType  # noqa: A003
+    format: FormatType
     enum: list[str]
     readOnly: bool
     writeOnly: bool
