@@ -29,16 +29,15 @@ except ImportError:
 
 from django.http.response import HttpResponseBase
 from rest_framework.authentication import BaseAuthentication
-from rest_framework.parsers import BaseParser  # noqa: TCH002
+from rest_framework.parsers import BaseParser  # noqa: TC002
 from rest_framework.permissions import BasePermission
-from rest_framework.renderers import BaseRenderer  # noqa: TCH002
-from rest_framework.request import Request  # noqa: TCH002
-from rest_framework.response import Response  # noqa: TCH002
+from rest_framework.renderers import BaseRenderer  # noqa: TC002
+from rest_framework.request import Request  # noqa: TC002
+from rest_framework.response import Response  # noqa: TC002
 from rest_framework.serializers import Serializer
 
 __all__ = [
-    "Annotated",
-    "Any",
+    "APIXML",
     "APICallback",
     "APIComponents",
     "APIContact",
@@ -69,7 +68,8 @@ __all__ = [
     "APIStyle",
     "APITag",
     "APIType",
-    "APIXML",
+    "Annotated",
+    "Any",
     "AsView",
     "AuthOrPerm",
     "AuthScheme",
@@ -83,11 +83,10 @@ __all__ = [
     "Generator",
     "Generator",
     "GenericView",
-    "HeaderParameter",
-    "http_method",
     "HTTPMethod",
     "HTTPSecurityScheme",
     "HTTPSecurityType",
+    "HeaderParameter",
     "Literal",
     "MediaType",
     "ModuleType",
@@ -122,11 +121,12 @@ __all__ = [
     "SerializerType",
     "StatusCode",
     "TypeAlias",
-    "TypedDict",
     "TypeGuard",
     "TypeVar",
+    "TypedDict",
     "Union",
     "UrlPath",
+    "http_method",
 ]
 
 
