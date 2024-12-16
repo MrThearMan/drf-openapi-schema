@@ -77,7 +77,7 @@ mkdocs-mermaid2-plugin = "1.2.1"
 [tool.poetry.group.lint.dependencies]
 mypy = "1.13.0"
 django-stubs = "5.1.1"
-djangorestframework-stubs = "3.15.1"
+djangorestframework-stubs = "3.15.2"
 
 [tool.poetry.extras]
 pydantic = ["pydantic"]
