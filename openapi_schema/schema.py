@@ -393,7 +393,7 @@ class OpenAPISchema:
             return None  # pragma: no cover
 
         return APIRequestBody(
-            content={content_type: item_schema for content_type in self.get_parsers()},
+            content=dict.fromkeys(self.get_parsers(), item_schema),
         )
 
     def get_responses(self, method: HTTPMethod) -> APIResponses:  # noqa: PLR0912
@@ -455,7 +455,7 @@ class OpenAPISchema:
                 response_schema = {"schema": self.get_error_message_schema()}
 
             data[str(status_code)] = {  # type: ignore[literal-required]
-                "content": {content_type: response_schema for content_type in self.get_renderers()},
+                "content": dict.fromkeys(self.get_renderers(), response_schema),
                 "description": info,
             }
 

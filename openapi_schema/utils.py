@@ -300,10 +300,7 @@ def should_include_endpoint(path: UrlPath, callback: AsView) -> bool:  # pragma:
 
     # Ignore urls ending with file types
     match = re.match(path_format_parameter, path)
-    if match is not None:
-        return False
-
-    return True
+    return match is None
 
 
 def get_methods(callback: AsView) -> list[HTTPMethod]:
@@ -374,7 +371,7 @@ def warn_method_override(
 
 
 def deprecate(
-    __view: Optional[type[CompatibleView]] = None,
+    __view: Optional[type[CompatibleView]] = None,  # noqa: PYI063
     *,
     methods: Optional[list[HTTPMethod]] = None,
 ) -> type[CompatibleView]:
